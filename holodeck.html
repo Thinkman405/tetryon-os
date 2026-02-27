@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tetryon Holodeck v1.0</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; color: #0f0; font-family: 'Courier New', monospace; }
+        #ui { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(0, 20, 0, 0.8); padding: 10px; border: 1px solid #0f0; }
+        textarea { background: #000; color: #0f0; border: 1px solid #0f0; width: 300px; height: 100px; }
+        button { background: #0f0; color: #000; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        button:hover { background: #fff; }
+        #canvas-container { width: 100%; height: 100vh; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="ui">
+        <h3>TETRYON HOLODECK</h3>
+        <textarea id="jsonInput" placeholder="Paste lattice_state.json here..."></textarea><br>
+        <button onclick="renderScene()">IGNITE PIXELS</button>
+    </div>
+    <div id="canvas-container"></div>
+
+    <script>
+        let scene, camera, renderer, controls;
+        let nodes = [];
+        let links = [];
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000500); // Deep cyber green/black
+            scene.fog = new THREE.FogExp2(0x000500, 0.02);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            camera.position.y = 2;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Grid
+            const gridHelper = new THREE.GridHelper(20, 20, 0x00ff00, 0x004400);
+            scene.add(gridHelper);
+
+            // Origin Sun (N0)
+            const sunGeo = new THREE.SphereGeometry(0.2, 32, 32);
+            const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const sun = new THREE.Mesh(sunGeo, sunMat);
+            scene.add(sun);
+            
+            // Glow for Sun
+            const glowGeo = new THREE.SphereGeometry(0.3, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            scene.add(glow);
+
+            animate();
+        }
+
+        function renderScene() {
+            const input = document.getElementById('jsonInput').value;
+            try {
+                const data = JSON.parse(input);
+                updateGeometry(data);
+            } catch (e) {
+                alert("Invalid JSON: " + e.message);
+            }
+        }
+
+        function updateGeometry(data) {
+            // Clear existing
+            nodes.forEach(n => scene.remove(n));
+            links.forEach(l => scene.remove(l));
+            nodes = [];
+            links = [];
+
+            // Add Nodes
+            data.nodes.forEach(node => {
+                if (node.id === 0) return; // Skip Origin (already there)
+
+                const geometry = new THREE.SphereGeometry(0.1, 16, 16);
+                const color = node.type === 'memory' ? 0x00ffff : 0xff00ff; // Cyan for Memory, Magenta for Registers
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: color, 
+                    emissive: color,
+                    emissiveIntensity: 0.5,
+                    shininess: 100
+                });
+                
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(node.x, node.y, node.z);
+                
+                scene.add(sphere);
+                nodes.push(sphere);
+            });
+
+            // Add Links
+            if (data.links) {
+                const material = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+                
+                data.links.forEach(link => {
+                    const sourceNode = data.nodes.find(n => n.id === link.source);
+                    const targetNode = data.nodes.find(n => n.id === link.target);
+
+                    if (sourceNode && targetNode) {
+                        const points = [];
+                        points.push(new THREE.Vector3(sourceNode.x, sourceNode.y, sourceNode.z));
+                        points.push(new THREE.Vector3(targetNode.x, targetNode.y, targetNode.z));
+                        
+                        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                        const line = new THREE.Line(geometry, material);
+                        
+                        scene.add(line);
+                        links.push(line);
+                    }
+                });
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            // Rotate scene slightly
+            scene.rotation.y += 0.001;
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Build artifacts and temp files (common for OS/distros)
+iso_build/
+build/
+*.bin
+*.lat
+*.iso
+*.img
+vmlinuz
+busybox
+storage/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.exe   # if you don't want to track Windows binaries
+
+# The problematic bracket file (escaped properly)
+iso_build/initramfs/bin/$$   
+\[       # catches any stray file named '[' at root too
+   $$       # same for closing bracket

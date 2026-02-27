@@ -1,0 +1,134 @@
+Product Requirement Document (PRD): Tetryon OS
+Project Codename: Anti-Gravity
+Version: 1.0-Alpha
+Classification: System Architecture / Kernel Development
+1. Executive Summary
+Tetryon OS is a fundamental departure from linear-memory operating systems (von Neumann architecture). It replaces linear addressing with Hyperbolic Geometric Lattices.
+The objective of the "Anti-Gravity" initiative is to build a functional prototype of this OS where registers are treated as nodes in a lattice, and instructions act as geometric transformations (rotations, reflections, translations) rather than arithmetic logic unit (ALU) operations.
+Core Value Proposition:
+Geometry-Permeated Execution: Hardware, Kernel, and User space share a single spatial lattice.
+Non-Linear Scaling: Operations scale across hyperbolic tilings rather than stacks.
+Minimal Memory Overhead: State is maintained via geometric relationships, not linear storage.
+2. Technical Specifications: The GeoASM ISA
+The foundation of the OS is the Geometric Assembly (GeoASM) architecture.
+2.1. Word Size & Encoding
+Architecture: 64-bit Geometric Word.
+Addressing: Non-linear; coordinate-based (Hyperbolic Coordinates $H^2$).
+2.2. Instruction Format (64-bit)
+The instruction set interprets the 64-bit word as a transformation vector.
+Bits
+Field
+Description
+63-58
+OPCODE
+6-bit Operation Code (64 possible instructions).
+57-54
+NODE_A
+4-bit Target Node/Register (N0-N15).
+53-50
+NODE_B
+4-bit Source/Reference Node.
+49-40
+META
+10-bit Metadata (binding types, lattice depth).
+39-0
+GEOMETRY
+40-bit Immediate Value (Coordinate data, Angle $\theta$, or Vector).
+
+2.3. Core Registers (Lattice Nodes)
+Registers are strictly defined as spatial anchors:
+N0 (Origin): The Accumulator.
+N1-N7: Primary Lattice Vector Nodes.
+N8-N15: Shadow/Hyperbolic Offset Nodes.
+2.4. Instruction Set (Draft Opcodes)
+Mnemonic
+Opcode
+Description
+LOAD
+0x01
+Load scalar/vector into a Node.
+BIND
+0x02
+Connect two nodes; result flows to Target.
+ROT
+0x03
+Rotate Node A by $\theta$ (defined in GEOMETRY).
+REFL
+0x04
+Reflect Node A across axis defined by Node B.
+TRANS
+0x05
+Hyperbolic translation of Node A relative to B.
+TESS
+0x06
+Tessellate: Replicate pattern of N(x) to fill region.
+OUT
+0x0F
+Output Node state to GeoBIOS/Bus.
+
+3. Software Stack & Toolchain Requirements
+The development team must deliver the following tools to support the architecture.
+3.1. The GeoASM Toolchain
+Assembler (geoasm):
+Python Prototype: Rapid CLI for validating lattice logic.
+C-Language Core: Compile-ready, high-performance binary generator with Makefile.
+Syntax: Must support NODE, VECTOR, HYP keywords.
+Disassembler (geodiss):
+Reverses binary .lat (lattice) files back to GeoASM mnemonics.
+Visualizer hook: Must output JSON for lattice visualization tools.
+3.2. The Runtime Engine
+Python Interpreter (geo_engine.py):
+Simulates the hyperbolic space.
+Visualizes node operations (Graphviz or Matplotlib integration).
+GeoVM (Virtual Machine):
+A sandboxed environment to run legacy linear code (e.g., Python, C) by wrapping them in a lattice container.
+4. Kernel Architecture & Subsystems
+4.1. GeoBIOS (Input/Output Layer)
+Bootstrapper: Initializes the hardware into the lattice.
+Port Mapping: Maps physical I/O (Keyboard, Screen) to specific Node Vectors (e.g., Keyboard = Node K_VEC at (-1, 0)).
+4.2. GeoRun (Scheduler & Kernel)
+Topology Manager: Instead of a process list, maintains a Process Topology.
+Scheduling: Execution follows "Hyperbolic Tilings." High priority processes occupy the center (Poincaré disk origin); background processes move to the infinite edge.
+4.3. Subsystem Languages
+To be implemented as parsers on top of GeoASM:
+GeoSys (C-like): For writing drivers. Syntax emphasizes structure.
+GeoOp (Bash-like): Kernel scripting for piping node streams.
+GeoGraph: A domain-specific language for pure math/geometry calculation.
+5. Drivers & Peripherals
+Drivers must be implemented as specific geometric structures:
+Storage: Spiral Memory Driver. Data is not written in blocks but in a logarithmic spiral.
+CPU: Light Node Mesh. Distributes computation across virtual nodes.
+Network: Hyperbolic Mesh. Packets traverse geodesics (shortest paths in curved space).
+6. User Experience (UX)
+GeoShell:
+A CLI/TUI where commands are entered as vector adjustments.
+Prompt should reflect current lattice coordinates (e.g., [0,0]>::).
+Demo Applications:
+Hello Lattice: Creates 3 nodes, binds them, reflects the result to Screen Node.
+GeoPaint: Visual node drawing tool.
+Calculus: Native derivative/integral solver using geometry.
+7. Development Phases (Roadmap)
+Phase 1: The Foundation (Current Sprint)
+[ ] Define 64-bit ISA Specification.
+[ ] Build Python GeoASM Assembler & Interpreter.
+[ ] Build C-based Assembler & Disassembler.
+[ ] "Hello Lattice" proof-of-concept.
+Phase 2: Memory & Storage
+[ ] Implement Spiral Memory Driver.
+[ ] Memory Management Unit (MMU) logic for Lattice mapping.
+Phase 3: Interrupts & Timing
+[ ] Timer lattices (oscillating nodes).
+[ ] Hardware Interrupt vector handling.
+Phase 4: Kernel Core
+[ ] GeoRun Scheduler (Tiling logic).
+[ ] System Calls implementation (GeoSys).
+Phase 5: Filesystem & Abstraction
+[ ] Device Abstraction Layer.
+[ ] Geometric Filesystem (Node-based storage).
+Phase 6: Networking & Polish
+[ ] Hyperbolic Mesh Networking.
+[ ] GeoShell final UI.
+[ ] Production Bootable ISO generation.
+Approved By: Anti-Gravity Architecture Lead
+Date: November 24, 2025
+
