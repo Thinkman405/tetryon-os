@@ -3,6 +3,9 @@
 # Usage: ./build_bootable.sh
 
 set -e
+# Production fixes
+sed -i 's/\r$//' *.sh 2>/dev/null || true
+rm -f TETRYON-OS-V2.iso
 
 WORK_DIR="iso_build"
 ISO_DIR="$WORK_DIR/iso"
