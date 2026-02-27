@@ -1,3 +1,13 @@
+# Binaries & build outputs
+*.exe
+*.bin
+*.iso
+Tetryon_v1.0/
+tetryon_os_alpha.tar.gz
+iso_build/
+build_iso/
+busybox
+vmlinuz
 # Build artifacts and temp files (common for OS/distros)
 iso_build/
 build/
