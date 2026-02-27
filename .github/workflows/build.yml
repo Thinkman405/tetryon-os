@@ -1,0 +1,41 @@
+name: Build Tetryon OS ISO
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential gcc make xorriso grub-common grub-pc-bin mtools wget tar gzip genisoimage
+
+    - name: Check required scripts exist
+      run: |
+        ls -l build_distro.sh build_bootable.sh || echo "Missing build scripts!"
+
+    - name: Make scripts executable
+      run: chmod +x *.sh || true
+
+    - name: Run distro build
+      run: ./build_distro.sh || echo "build_distro.sh failed"
+
+    - name: Run bootable ISO build
+      run: ./build_bootable.sh || echo "build_bootable.sh failed"
+
+    - name: Upload ISO artifact (if exists)
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: TETRYON-OS-V2.iso
+        path: TETRYON-OS-V2.iso
+        if-no-files-found: warn
